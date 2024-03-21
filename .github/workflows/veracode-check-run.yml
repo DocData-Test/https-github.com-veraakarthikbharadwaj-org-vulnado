@@ -34,6 +34,10 @@ on:
         description: 'event_type triggered by the GitHub App (provided by GitHub app via `github.event.client_payload.event_type`)'
         required: true
         type: string
+      branch:
+        description: 'branch triggered by the GitHub App (provided by GitHub app via `github.event.client_payload.repository.branch`)'
+        required: true
+        type: string
 jobs:
   create_check_run:
     runs-on: ubuntu-latest
@@ -53,15 +57,16 @@ jobs:
           INPUT_NAME: ${{ inputs.check_run_name }}
           INPUT_HEAD_SHA: ${{ inputs.head_sha }}
           INPUT_DETAILS_URL: "https://github.com/${{ github.repository }}/actions/runs/${{ inputs.run_id }}"
-  
-          
+     
       - name: Create metadata
         id: create-metadata-json
         run: |
           echo '{
             "check_run_type": "${{ inputs.event_type }}",
             "repository_name": "${{ inputs.repositroy_name }}",
-            "check_run_id": ${{ fromJson(steps.create_check_run.outputs.data).id }}
+            "check_run_id": ${{ fromJson(steps.create_check_run.outputs.data).id }},
+            "branch": "${{ inputs.branch }}",
+            "sha": "${{ inputs.head_sha }}"
           }' > workflow-metadata.json
           echo "run_id=${{ fromJson(steps.create_check_run.outputs.data).id }}" >> "GITHUB_OUTPUT"
         shell: bash
